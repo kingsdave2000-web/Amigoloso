@@ -1,4 +1,4 @@
-##Forma de uso
+## Forma de uso
 Tener lista de nombres separados por comas ',' y pegar y directamente los separa y realiar sorteo. 
 Esta diseñada para ser responsiva con smarthphones.
 
