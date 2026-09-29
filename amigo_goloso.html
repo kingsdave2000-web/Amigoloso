@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Amigo Goloso - Gustos y Preferencias</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#f6f4f0; --surface:#ffffff; --ink:#17181a; --muted:#7a7a78;
+  --line:#e3dfd8; --accent:#d97706; --accent-soft:#fef3c7; 
+  --green:#16a34a; --green-soft:#dcfce7;
+  --red:#dc2626; --red-soft:#fee2e2;
+  --shadow:0 1px 2px rgba(0,0,0,.05),0 8px 24px rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#121213; --surface:#1b1c1e; --ink:#ececea; --muted:#9a9a97;
+    --line:#2d2e31; --accent:#f59e0b; --accent-soft:#2e2315; 
+    --green:#22c55e; --green-soft:#14291a;
+    --red:#ef4444; --red-soft:#2c1919;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 28px rgba(0,0,0,.45);
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+.wrap{max-width:720px;margin:0 auto;padding:30px 20px 80px}
+header{text-align:center;margin-bottom:28px}
+h1{font-family:"Fraunces",Georgia,serif;font-weight:600;font-size:clamp(28px,6vw,38px);margin:0 0 6px;letter-spacing:-.02em;color:var(--accent)}
+.sub{color:var(--muted);font-size:14px;margin:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow);margin-bottom:20px}
+label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.03em}
+textarea,input[type=text]{
+  width:100%;font-family:inherit;font-size:15px;color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:10px;padding:11px 13px;outline:none;transition:border-color .15s;
+}
+textarea{min-height:90px;resize:vertical}
+textarea:focus,input[type=text]:focus{border-color:var(--accent)}
+.row{display:flex;gap:8px;margin-top:10px}
+.row input{flex:1}
+button{
+  font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;
+  border:1px solid var(--line);background:var(--surface);color:var(--ink);
+  padding:11px 16px;border-radius:10px;transition:.15s;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+}
+button:hover{border-color:var(--ink)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff;width:100%;padding:13px}
+button.primary:hover{filter:brightness(1.07)}
+button.ghost{background:transparent}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;min-height:4px}
+.chip{
+  display:inline-flex;align-items:center;gap:7px;background:var(--bg);
+  border:1px solid var(--line);border-radius:999px;padding:6px 10px 6px 14px;font-size:14px;
+}
+.chip button{all:unset;cursor:pointer;color:var(--muted);line-height:1;font-size:16px;padding:0 2px}
+.chip button:hover{color:var(--red)}
+.count{font-size:13px;color:var(--muted);margin-top:12px}
+.people{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:10px}
+.person{
+  text-align:center;padding:16px 12px;border-radius:12px;background:var(--surface);
+  border:1px solid var(--line);font-weight:500;cursor:pointer;position:relative;
+  transition:all .15s ease;
+}
+.person:hover{border-color:var(--accent)}
+.person.done{border-color:var(--green);background:var(--green-soft);color:var(--ink)}
+.person.done::after{content:"✓";position:absolute;right:10px;top:8px;color:var(--green);font-size:12px;font-weight:bold}
+.actions{display:flex;gap:12px;justify-content:center;margin-top:24px;flex-wrap:wrap}
+
+/* Modal Form */
+.overlay{
+  position:fixed;inset:0;background:color-mix(in srgb,var(--bg) 90%,transparent);
+  backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;
+  padding:20px;z-index:50;overflow-y:auto;
+}
+.overlay.on{display:flex}
+.form-box{width:100%;max-width:440px;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:24px;box-shadow:var(--shadow)}
+.form-box h2{font-family:"Fraunces",Georgia,serif;margin:0 0 16px;font-size:22px;text-align:center}
+.field-group{margin-bottom:16px;text-align:left}
+.field-group label{margin-bottom:6px;font-size:12px}
+.like-label{color:var(--green)}
+.dislike-label{color:var(--red)}
+
+/* Estilos exclusivos para la Tabla de Exportación PDF/Impresión */
+#print-container {
+  display: none;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #print-container, #print-container * {
+    visibility: visible;
+  }
+  #print-container {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    color: #000;
+    background: #fff;
+    padding: 10px;
+  }
+  .print-title {
+    font-family: Georgia, serif;
+    font-size: 22px;
+    text-align: center;
+    margin-bottom: 4px;
+    color: #000;
+  }
+  .print-sub {
+    text-align: center;
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 20px;
+  }
+  .pdf-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .pdf-table th, .pdf-table td {
+    border: 1px solid #999;
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  .pdf-table th {
+    background-color: #f0f0f0;
+    font-weight: bold;
+  }
+  .pdf-table th:nth-child(1) { width: 25%; }
+  .pdf-table th:nth-child(2) { width: 37.5%; }
+  .pdf-table th:nth-child(3) { width: 37.5%; }
+  .text-like { color: #15803d; }
+  .text-dislike { color: #b91c1c; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>🍬 Amigo Goloso 🍫</h1>
+    <p class="sub">Guarda los gustos y antojos de cada participante</p>
+  </header>
+
+  <!-- Sección 1: Lista de Nombres -->
+  <section id="sec-setup">
+    <div class="card">
+      <label for="bulk">Agregar participantes (uno por línea o separados por comas)</label>
+      <textarea id="bulk" placeholder="Juan&#10;María&#10;Carlos"></textarea>
+      <div class="row">
+        <input type="text" id="single" placeholder="Agregar un nombre…" autocomplete="off">
+        <button id="add">Agregar</button>
+      </div>
+      <div class="chips" id="chips"></div>
+      <p class="count" id="count">0 participantes</p>
+      <button class="primary" id="start" disabled>Ir a completar gustos →</button>
+    </div>
+  </section>
+
+  <!-- Sección 2: Selección de Participantes -->
+  <section id="sec-list" style="display:none;">
+    <div class="card">
+      <label>Toca tu nombre para registrar o editar tus gustos:</label>
+      <div class="people" id="people"></div>
+    </div>
+    
+    <div class="actions">
+      <button id="btn-export" class="primary" style="width:auto; padding:12px 24px;">📄 Guardar / Exportar PDF</button>
+      <button id="btn-edit-names" class="ghost">✏️ Editar lista de nombres</button>
+    </div>
+  </section>
+</div>
+
+<!-- Modal -->
+<div class="overlay" id="overlay">
+  <div class="form-box">
+    <h2 id="modal-title">Hola</h2>
+    
+    <div class="field-group">
+      <label class="like-label" for="likes">💚 Lo que SÍ me gustaría recibir:</label>
+      <textarea id="likes" placeholder="Ej: Chocolates amargos, gomitas ácidas, galletas de avena..."></textarea>
+    </div>
+
+    <div class="field-group">
+      <label class="dislike-label" for="dislikes">💔 Lo que NO me gustaría recibir:</label>
+      <textarea id="dislikes" placeholder="Ej: Dulces con maní (alergia), picantes, mentas..."></textarea>
+    </div>
+
+    <div class="row" style="margin-top:20px;">
+      <button id="btn-cancel" class="ghost" style="flex:1;">Cancelar</button>
+      <button id="btn-save" class="primary" style="flex:1; margin-top:0;">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Estructura de Tabla para Imprimir/Guardar PDF -->
+<div id="print-container">
+  <h1 class="print-title">Lista de Gustos - Amigo Goloso 🍬</h1>
+  <p class="print-sub">Resumen de preferencias de los participantes</p>
+  <table class="pdf-table">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th class="text-like">💚 Le gustaría recibir</th>
+        <th class="text-dislike">💔 NO le gustaría recibir</th>
+      </tr>
+    </thead>
+    <tbody id="print-tbody"></tbody>
+  </table>
+</div>
+
+<script>
+(function(){
+  var names = [];
+  var preferences = {}; 
+  var currentName = null;
+
+  var $ = function(id){ return document.getElementById(id); };
+
+  function saveStorage(){
+    try {
+      localStorage.setItem('ag_names', JSON.stringify(names));
+      localStorage.setItem('ag_prefs', JSON.stringify(preferences));
+    } catch(e){}
+  }
+
+  function loadStorage(){
+    try {
+      var n = JSON.parse(localStorage.getItem('ag_names') || '[]');
+      var p = JSON.parse(localStorage.getItem('ag_prefs') || '{}');
+      if(Array.isArray(n)) names = n;
+      if(p && typeof p === 'object') preferences = p;
+    } catch(e){}
+  }
+
+  function norm(s){ return s.replace(/\s+/g,' ').trim(); }
+
+  function addMany(text){
+    var parts = text.split(/[\n,;]+/).map(norm).filter(Boolean);
+    var added = 0;
+    parts.forEach(function(p){
+      var dup = names.some(function(n){ return n.toLowerCase() === p.toLowerCase(); });
+      if(!dup){ 
+        names.push(p); 
+        added++; 
+      }
+    });
+    return added;
+  }
+
+  function renderChips(){
+    var c = $('chips'); c.innerHTML = '';
+    names.forEach(function(n, i){
+      var el = document.createElement('span');
+      el.className = 'chip';
+      el.textContent = n;
+      var b = document.createElement('button');
+      b.textContent = '×';
+      b.title = 'Quitar';
+      b.onclick = function(){ 
+        delete preferences[names[i]];
+        names.splice(i,1); 
+        renderChips(); 
+        saveStorage(); 
+      };
+      el.appendChild(b);
+      c.appendChild(el);
+    });
+    $('count').textContent = names.length + (names.length === 1 ? ' participante' : ' participantes');
+    $('start').disabled = names.length === 0;
+  }
+
+  function renderPeople(){
+    var p = $('people'); p.innerHTML = '';
+    names.forEach(function(n){
+      var b = document.createElement('div');
+      var hasData = preferences[n] && (preferences[n].likes || preferences[n].dislikes);
+      b.className = 'person' + (hasData ? ' done' : '');
+      b.textContent = n;
+      b.onclick = function(){ openModal(n); };
+      p.appendChild(b);
+    });
+  }
+
+  function openModal(n){
+    currentName = n;
+    $('modal-title').textContent = 'Gustos de ' + n;
+    var userPref = preferences[n] || { likes: '', dislikes: '' };
+    $('likes').value = userPref.likes || '';
+    $('dislikes').value = userPref.dislikes || '';
+    $('overlay').classList.add('on');
+  }
+
+  function closeModal(){
+    $('overlay').classList.remove('on');
+    currentName = null;
+  }
+
+  $('add').onclick = function(){
+    addMany($('bulk').value + '\n' + $('single').value);
+    $('bulk').value = ''; $('single').value = '';
+    renderChips(); saveStorage();
+  };
+
+  $('single').addEventListener('keydown', function(e){ 
+    if(e.key === 'Enter') $('add').click(); 
+  });
+
+  $('start').onclick = function(){
+    if(names.length === 0) return;
+    $('sec-setup').style.display = 'none';
+    $('sec-list').style.display = 'block';
+    renderPeople();
+    window.scrollTo(0,0);
+  };
+
+  $('btn-edit-names').onclick = function(){
+    $('sec-list').style.display = 'none';
+    $('sec-setup').style.display = 'block';
+    renderChips();
+  };
+
+  $('btn-cancel').onclick = closeModal;
+
+  $('btn-save').onclick = function(){
+    if(!currentName) return;
+    preferences[currentName] = {
+      likes: $('likes').value.trim(),
+      dislikes: $('dislikes').value.trim()
+    };
+    saveStorage();
+    renderPeople();
+    closeModal();
+  };
+
+  // Exportación a PDF mediante la tabla e impresión directa del navegador
+  $('btn-export').onclick = function(){
+    if(names.length === 0) return;
+
+    var tbody = $('print-tbody');
+    tbody.innerHTML = '';
+
+    names.forEach(function(n){
+      var pref = preferences[n] || { likes: '', dislikes: '' };
+      var likesText = pref.likes ? pref.likes.replace(/\n/g, '<br>') : '-';
+      var dislikesText = pref.dislikes ? pref.dislikes.replace(/\n/g, '<br>') : '-';
+
+      var tr = document.createElement('tr');
+      tr.innerHTML = 
+        '<td><strong>' + n + '</strong></td>' +
+        '<td>' + likesText + '</td>' +
+        '<td>' + dislikesText + '</td>';
+      tbody.appendChild(tr);
+    });
+
+    // Abrir el cuadro de impresión/guardar PDF nativo del teléfono
+    window.print();
+  };
+
+  loadStorage();
+  renderChips();
+
+  if(names.length > 0 && Object.keys(preferences).length > 0){
+    $('sec-setup').style.display = 'none';
+    $('sec-list').style.display = 'block';
+    renderPeople();
+  }
+})();
+</script>
+</body>
+</html>
